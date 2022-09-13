@@ -46,12 +46,17 @@ def main(args):
     class_dict = {"defect": 1}
     category_index = {v: k for k, v in class_dict.items()}
 
+    results_file = os.path.join(args.output_path,
+                                "results{}.txt".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+    with open(results_file, 'w') as logfile:
+        logfile.write('The prediction process:\n')
+
     all_boxes = []
     all_scores = []
     all_classes = []
     model.eval()
     t_start = time_synchronized()
-    for image in image_files:
+    for num, image in enumerate(image_files):
         original_img = Image.open(image).convert('RGB')
         data_transform = transforms.Compose([transforms.ToTensor()])
         img = data_transform(original_img)
@@ -65,7 +70,9 @@ def main(args):
             t1 = time_synchronized()
             predictions = model(img.to(device))[0]
             t2 = time_synchronized()
-            print(f"inference+NMS(single image) time: {(t2 - t1): .6f}s")
+            print(f"[INFO] Inference time of image {num}: {(t2 - t1): .6f}s")
+            with open(results_file, 'a') as logfile:
+                logfile.write(f"Inference time of image {num}: {(t2 - t1): .6f}s\n")
 
             predict_boxes = predictions["boxes"]
             predict_classes = predictions["labels"]
@@ -90,7 +97,9 @@ def main(args):
     all_boxes, all_scores, all_classes = all_boxes[keep], all_scores[keep], all_classes[keep]
 
     t_end = time_synchronized()
-    print(f"The total inference time: {(t_end - t_start): .6f}s")
+    print(f"[INFO] The total inference time: {(t_end - t_start): .6f}s")
+    with open(results_file, 'a') as logfile:
+        logfile.write(f"The total inference time: {(t_end - t_start): .6f}s\n")
 
     draw_box(image_draw,
              all_boxes.cpu().numpy(),
@@ -104,7 +113,7 @@ def main(args):
     # Save the prediction result
     output_file = os.path.join(args.output_path, 'prediction.jpg')
     image_draw.save(output_file, dpi=(300.0, 300.0))
-    print("The program is finished.")
+    print("[INFO] The program is finished.")
 
 
 if __name__ == "__main__":
@@ -123,4 +132,8 @@ if __name__ == "__main__":
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path)
 
+    config_file = os.path.join(args.output_path, 'config.txt')
+    with open(config_file, 'w') as f:
+        for var in str(args).split(','):
+            f.write(var+',\n')
     main(args)
