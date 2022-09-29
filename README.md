@@ -4,7 +4,7 @@
 Install [requirements.txt](https://github.com/MathiasKersemans/ObjectDetectionIRT/blob/main/requirements.txt) in a
 [**Python>=3.10.0**](https://www.python.org/) environment.
 ```bash
-git clone Mathias.github_link  # clone
+git clone https://github.com/MathiasKersemans/ObjectDetectionIRT.git  # clone
 pip install -r requirements.txt  # install
 ```
 
